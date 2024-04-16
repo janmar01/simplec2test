@@ -351,7 +351,7 @@ static void check_arrayexpr(T_expr expr) {
     expr->type = expr->arrayexpr.expr->type->arraytype.type;
   }
   else {
-    type_error("something not working");
+    type_error("1. something not working");
   }
 }
 
@@ -427,7 +427,7 @@ static void check_binaryexpr(T_expr expr) {
       expr->type = create_primitivetype(E_typename_int);
       break;
     default:
-      type_error("something not working");
+      type_error("2. something not working");
       break;
   }
 }
