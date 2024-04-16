@@ -434,6 +434,9 @@ static void check_binaryexpr(T_expr expr) {
 
 static void check_castexpr(T_expr expr) {
   fprintf(stderr, "check_castexpr\n");
+  if (expr->castexpr.expr == NULL) {
+    type_error("cast is NULL");
+  }
   T_type type = expr->castexpr.expr->type;
   if (type->kind == E_functiontype) {
     type_error("casting not permitted between functions");
