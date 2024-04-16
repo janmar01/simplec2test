@@ -255,7 +255,6 @@ static void check_compoundstmt(T_stmt stmt) {
   T_scope parent_scope = current_scope->parent;
   destroy_scope(current_scope); 
   current_scope = parent_scope;
-
 }
 
 /* expressions */
@@ -358,7 +357,7 @@ static void check_unaryexpr(T_expr expr) {
 
   switch (expr->unaryexpr.op) {
     case E_op_ref:
-      if (expr->unaryexpr.expr->type->kind != E_primitivetype) {
+      if (expr->unaryexpr.expr->type->kind != E_primitivetype && expr->unaryexpr.expr->type->kind != E_pointertype) {
         type_error("can't take address of non-primitive type");
       }
       expr->type = create_pointertype(expr->unaryexpr.expr->type);
@@ -379,7 +378,7 @@ static void check_unaryexpr(T_expr expr) {
       if (expr->unaryexpr.expr->type->kind != E_typename_int) {
         type_error("logical neg expects primitive type");
       }
-      expr->type = expr->unaryexpr.expr->type;
+      expr->type = create_primitivetype(E_typename_int);
       break;
     default:
       fprintf(stderr, "not working idk try again");
@@ -399,28 +398,34 @@ static void check_binaryexpr(T_expr expr) {
     case E_op_mod:
     case E_op_plus:
     case E_op_minus:
-      if(!compare_types(expr->binaryexpr.left->type, expr->binaryexpr.right->type)) {
-          type_error("operands must have same type");
-        }
-        expr->type = expr->binaryexpr.left->type;
-        break;
+      if(compare_types(expr->binaryexpr.left->type, expr->binaryexpr.right->type)) {
+        expr->type = expr->binaryexpr.left->type; 
+      }
+      else {
+        type_error("operands must have same type");
+      }
+      break;
     case E_op_lt:
     case E_op_gt:
     case E_op_le:
     case E_op_ge:
     case E_op_eq:
     case E_op_ne:
-      if (!compare_types(expr->binaryexpr.left->type, INTTYPE) && compare_types(expr->binaryexpr.right->type, INTTYPE) || !compare_types(expr->binaryexpr.left->type, CHARTYPE) && compare_types(expr->binaryexpr.right->type, CHARTYPE) || compare_types(expr->binaryexpr.left->type, INTTYPE) && !compare_types(expr->binaryexpr.right->type, INTTYPE) || compare_types(expr->binaryexpr.left->type, CHARTYPE) && !compare_types(expr->binaryexpr.right->type, CHARTYPE)) {
+      if (compare_types(expr->binaryexpr.left->type, expr->binaryexpr.right->type)) {
+        expr->type = create_primitivetype(E_typename_int);
+      }
+      else {
         type_error("cannot be both int and char");
       }
-      expr->type = create_primitivetype(E_typename_int);
       break;
     case E_op_and:
     case E_op_or:
-      if (!compare_types(expr->binaryexpr.left->type, INTTYPE) || !compare_types(expr->binaryexpr.right->type, INTTYPE)) {
+      if (compare_types(expr->binaryexpr.left->type, INTTYPE) && compare_types(expr->binaryexpr.right->type, INTTYPE)) {
+        expr->type = create_primitivetype(E_typename_int);
+      }
+      else {
         type_error("operands must have int type");
       }
-      expr->type = create_primitivetype(E_typename_int);
       break;
     default:
       type_error("2. something not working");
@@ -430,14 +435,11 @@ static void check_binaryexpr(T_expr expr) {
 
 static void check_castexpr(T_expr expr) {
   fprintf(stderr, "check_castexpr\n");
-  if (expr->castexpr.expr == NULL) {
-    type_error("cast is NULL");
-  }
-  T_type type = expr->castexpr.expr->type;
-  if (type->kind == E_functiontype) {
+
+  if (expr->castexpr.expr->type->kind == E_functiontype) {
     type_error("casting not permitted between functions");
   }
-  expr->type = type;
+  expr->type = expr->castexpr.expr->type;
 }
 
 /* type error */
