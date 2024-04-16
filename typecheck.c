@@ -339,19 +339,15 @@ static void check_arrayexpr(T_expr expr) {
   check_expr(expr->arrayexpr.expr);
   check_expr(expr->arrayexpr.index);
 
-  if (expr->arrayexpr.expr->type->kind != E_pointertype && expr->arrayexpr.expr->type->kind != E_arraytype) {
-    type_error("must be pointer or array");
-  }
-
   if (expr->arrayexpr.expr->type->kind == E_pointertype) {
     expr->type = expr->arrayexpr.expr->type->pointertype;
   }
 
-  if (expr->arrayexpr.expr->type->kind == E_arraytype) {
+  else if (expr->arrayexpr.expr->type->kind == E_arraytype) {
     expr->type = expr->arrayexpr.expr->type->arraytype.type;
   }
   else {
-    type_error("1. something not working");
+    type_error("must be pointer or array");
   }
 }
 
